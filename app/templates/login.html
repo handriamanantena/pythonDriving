@@ -3,10 +3,5 @@
 
 {% block content %}
 <h1>Sign In</h1>
-<form action="" method="post" name="login">
-<fb:login-button 
-	scope="public_profile,email"
-	onlogin="checkLoginState();">
-</fb:login-button>
-</form>
+<p><a href="{{ url_for('oauth_authorize', provider='facebook') }}">Login with Facebook</a></p>
 {% endblock %}

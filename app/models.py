@@ -1,9 +1,15 @@
 from app import db
+#from flask.ext.sqlalchemy import SQLAlchemy
+#from flask.ext.login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin
 
-class User(db.Model):
+
+class User(UserMixin, db.Model):
+	#__tablename__ = 'users'
 	id = db.Column(db.Integer,primary_key=True)
-	nickname = db.Column(db.String(64), index = True, unique =True)
-	email = db.Column(db.String(120), index=True, unique=True)
+	social_id = db.Column(db.String(64), nullable=False, unique=True)
+	nickname = db.Column(db.String(64), nullable=False)
+	email = db.Column(db.String(64), nullable=True)
 	posts = db.relationship('Post', backref='author', lazy='dynamic')
 
 	@property
@@ -23,10 +29,6 @@ class User(db.Model):
 			return unicode(self.id)
 		except NameError:
 			return str(self.id)
-
-	def __repr__(self):
-		return '<User %r>' % (self.nickname)
-
 	
 	def __repr__(self):
 		return '<User %r>' % (self.nickname)

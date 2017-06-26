@@ -1,4 +1,4 @@
- window.fbAsyncInit = function() {
+ /*window.fbAsyncInit = function() {
   FB.init({
     appId      : '100258190605774',
     cookie     : true,
@@ -24,4 +24,4 @@ function checkLoginState() {
   FB.getLoginStatus(function(response) {
     statusChangeCallback(response);
   });
-}
+}*/
