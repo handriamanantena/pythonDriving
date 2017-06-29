@@ -1,9 +1,11 @@
 from flask import render_template, flash, redirect, session, url_for, request, g
 from flask_login import login_user, logout_user, current_user, login_required
 from app import app, db, lm, oid
-from .forms import LoginForm
 from .models import User
+from .forms import EditForm
 from oauth import OAuthSignIn
+from datetime import datetime
+
 
 @app.route('/')
 @app.route('/index')
@@ -24,17 +26,12 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
-@oid.loginhandler
+#@oid.loginhandler
 def login():
 	if g.user is not None and g.user.is_authenticated:
 		return redirect(url_for('index'))
-	form = LoginForm()
-	if form.validate_on_submit():
-		session['remember_me'] = form.remember_me.data
-		return oid.try_login(form.openid.data, ask_for=['nickname','email'])
 	return render_template('login.html',
 							title= 'Sign In',
-							form= form,
 							providers = app.config['OAUTH_CREDENTIALS'])
 
 @app.route('/callback/<provider>')
@@ -68,6 +65,41 @@ def load_user(id):
 @app.before_request
 def before_request():
 	g.user = current_user
+	if g.user.is_authenticated:
+		g.user.last_seen = datetime.utcnow()
+		db.session.add(g.user)
+		db.session.commit()
+
+@app.route('/user/<nickname>')
+@login_required
+def user(nickname):
+	user = User.query.filter_by(nickname=nickname).first()
+	if user == None:
+		flash('User %s not found.' % nickname)
+		return redirect(url_for('index'))
+	posts = [
+		{'author': user, 'body': 'Test post #1'},
+		{'author': user, 'body': 'Test post #2'}
+	]
+	return render_template('user.html', user = user, posts=posts)
+
+@app.route('/edit', methods= ['GET', 'POST'])
+@login_required
+def edit():
+	form = EditForm()
+	if form.validate_on_submit():
+		g.user.nickname = form.nickname.data
+		g.user.about_me = form.about_me.data
+		db.session.add(g.user)
+		db.session.commit()
+		flash('Your changes have been made')
+		return redirect(url_for('edit'))
+	else:
+		form.nickname.data = g.user.nickname
+		form.about_me.data = g.user.about_me
+		return render_template('edit.html',form=form)
+
+
 
 
 
